@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-server
+  namespace: production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-server
+  template:
+    metadata:
+      labels:
+        app: auth-server
+    spec:
+      serviceAccountName: auth-server
+      containers:
+        - name: auth-server
+          image: gcr.io/sarynoapp/auth-server:dev_0.0.4
+          imagePullPolicy: Never #always 
+          ports:
+            - containerPort: 3000
+          env: 
+            - name: LOG_CONSOLE
+              value: 'true'
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: token-authenticator
+                  key: mongo-uri

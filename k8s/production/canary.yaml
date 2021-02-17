@@ -1,0 +1,44 @@
+# apiVersion: flagger.app/v1beta1
+# kind: Canary
+# metadata:
+#   name: auth-server
+#   namespace: production
+# spec:
+#   provider: gloo
+#   # deployment reference
+#   targetRef:
+#     apiVersion: apps/v1
+#     kind: Deployment
+#     name: auth-server
+#   # HPA reference (optional)
+#   service:
+#     # ClusterIP port number
+#     port: 3000
+#     # container port number or name (optional)
+#     targetPort: 3000
+#   skipAnalysis: true
+#   analysis:
+#     # schedule interval (default 60s)
+#     interval: 10s
+#     # max number of failed metric checks before rollback
+#     threshold: 5
+#     # max traffic percentage routed to canary
+#     # percentage (0-100)
+#     maxWeight: 50
+#     # canary increment step
+#     # percentage (0-100)
+#     stepWeight: 5
+#     # Gloo Prometheus checks
+#     metrics:
+#     - name: request-success-rate
+#       # minimum req success rate (non 5xx responses)
+#       # percentage (0-100)
+#       thresholdRange:
+#         min: 99
+#       interval: 1m
+#     - name: request-duration
+#       # maximum req duration P99
+#       # milliseconds
+#       thresholdRange:
+#         max: 500
+#       interval: 30s

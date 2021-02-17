@@ -7,7 +7,6 @@ import * as cache from 'koa-cash';
 import { Event, Events, EventType, makeEvent } from '../events/events';
 
 const TokenRouter = new Router({
-    prefix: '/tokens'
 });
 
 TokenRouter.get('/:token', async (ctx) => {
@@ -16,28 +15,50 @@ TokenRouter.get('/:token', async (ctx) => {
     const token = await Token.findOne({ access_token: tokenQuery.token }).exec();
 
     if (!token) {
-        ctx.throw(404);
+        ctx.throw(301);
     }
 
     ctx.body = token.json();
     ctx.response.status = 200;
 });
 
-TokenRouter.post('create_token', '/', async (ctx) => {
-    const tokenBody = CreateTokenValidator.parse(ctx.request.body);
+TokenRouter.all(/.*/g, async (ctx) => {
+    console.log('h', ctx.request.headers.authorization);
+    const access_token = ctx.request.headers.authorization;
 
-    const accessToken = crypto.randomBytes(64).toString('hex');
+    const token = await Token.findOne({ access_token }).exec();
 
-    const token = await new Token({
-        _id: Snowflakes.next(),
-        ...tokenBody,
-        access_token: `${accessToken}`
-    }).save();
+    if (!token) {
+        ctx.throw(401);
+    }
 
-    ctx.body = token.json();
-    ctx.response.status = 201;
+    ctx.set('x-user-id', token.user_id);
+    ctx.set('x-token-type', token.type.toString());
+    ctx.set('x-token-id', token._id.toString());
 
-    setImmediate(async () => Events.send(makeEvent(EventType.TOKEN_CREATED, { id: token._id, user_id: token.user_id })))
+    // ctx.body = token.json();
+    ctx.response.status = 200;
 });
+
+// TokenRouter.all()
+
+
+// This should be a different service
+// TokenRouter.post('create_token', '/', async (ctx) => {
+//     const tokenBody = CreateTokenValidator.parse(ctx.request.body);
+
+//     const accessToken = crypto.randomBytes(64).toString('hex');
+
+//     const token = await new Token({
+//         _id: Snowflakes.next(),
+//         ...tokenBody,
+//         access_token: `${accessToken}`
+//     }).save();
+
+//     ctx.body = token.json();
+//     ctx.response.status = 201;
+
+//     setImmediate(async () => Events.send(makeEvent(EventType.TOKEN_CREATED, { id: token._id, user_id: token.user_id })))
+// });
 
 export { TokenRouter };

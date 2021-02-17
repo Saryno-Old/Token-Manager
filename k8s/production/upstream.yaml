@@ -1,0 +1,10 @@
+apiVersion: gloo.solo.io/v1
+kind: Upstream
+metadata:
+  name: auth-server
+  namespace: production
+spec:
+  static:
+    hosts:
+    - addr: auth-server.production.svc.cluster.local
+      port: 3000
